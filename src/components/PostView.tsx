@@ -274,7 +274,7 @@ function NativePlayer({ url, poster, id, onEnded, ratioHint }: { url: string; po
   return (
     <div className="relative flex w-full justify-center overflow-hidden bg-black sm:rounded-xl">
       <div className="relative w-full" style={{ ...boxStyle, transform: "translateZ(0)" }}>
-        <video ref={ref} crossOrigin="anonymous" controls={started} autoPlay playsInline preload="auto" className="absolute inset-0 block h-full w-full object-contain"
+        <video ref={ref} crossOrigin="anonymous" controls={started && !buffering} autoPlay playsInline preload="auto" className="absolute inset-0 block h-full w-full object-contain"
           onLoadedMetadata={(e) => { const v = e.currentTarget; v.playbackRate = 1; v.defaultPlaybackRate = 1; if (v.videoWidth && v.videoHeight) setRatio(Math.min(4, Math.max(0.25, v.videoWidth / v.videoHeight))); }}
           onPlay={() => { setStarted(true); if (!playingRef.current) { playingRef.current = true; markPlaying(true); } }}
           onPause={() => { if (playingRef.current) { playingRef.current = false; markPlaying(false); } }}
