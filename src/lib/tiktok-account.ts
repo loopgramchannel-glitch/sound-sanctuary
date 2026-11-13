@@ -26,3 +26,12 @@ export function videoLinks(text: string): string[] {
   }
   return out;
 }
+
+/** Parallel downloads for account/pasted-link imports. */
+export const IMPORT_WORKERS = 6;
+
+/**
+ * Bookmarklet run on a TikTok profile in the owner's own browser: scrolls to the end of the
+ * account and copies every video link, ready for "Paste many links".
+ */
+export const COLLECT_BOOKMARKLET = "javascript:" + encodeURIComponent(`(async()=>{const s=new Set,w=t=>new Promise(r=>setTimeout(r,t));let same=0,last=0;const b=document.createElement('div');b.style.cssText='position:fixed;top:10px;left:10px;z-index:99999;background:#000;color:#fff;padding:10px;border-radius:8px;font:14px sans-serif';document.body.appendChild(b);while(same<6&&s.size<10000){document.querySelectorAll('a[href*="/video/"]').forEach(a=>s.add(a.href.split('?')[0]));b.textContent='Loopgram: found '+s.size+' videos...';window.scrollTo(0,document.body.scrollHeight);await w(1500);same=s.size===last?same+1:0;last=s.size}const t=[...s].join('\\n');try{await navigator.clipboard.writeText(t);b.textContent='Copied '+s.size+' links. Paste them in Loopgram.'}catch(e){prompt('Copy these '+s.size+' links:',t)}})()`);
