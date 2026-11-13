@@ -20,10 +20,36 @@ export const studioTikTokAccountPage = createServerFn({ method: "POST" })
         signal: AbortSignal.timeout(15000),
       }).then((r) => r.json()).catch(() => null);
     }
-    if (!j?.data) throw new Error("503: TikTok wouldn't list this account right now. Try again in a minute, or paste the video links instead.");
+    if (!j?.data) {
+      // TikWM's account list is behind a bot wall; TikTok's own profile embed still lists the latest videos.
+      if (data.cursor !== "0") return { items: [] as AccountItem[], cursor: "", hasMore: false };
+      const items = await viaEmbed(data.user);
+      if (!items.length) throw new Error("503: TikTok wouldn't list this account right now. Try again in a minute, or paste the video links instead.");
+      return { items, cursor: "", hasMore: false };
+    }
     const raw: any[] = Array.isArray(j.data.videos) ? j.data.videos : [];
     const items: AccountItem[] = raw.map((v) => ({
       id: String(v.video_id ?? v.aweme_id ?? ""), title: String(v.title ?? "").slice(0, 200), cover: String(v.cover ?? ""), clean: isCleanPlay(v),
     })).filter((v) => /^\d+$/.test(v.id));
     return { items, cursor: String(j.data.cursor ?? ""), hasMore: !!j.data.hasMore && items.length > 0 };
   });
+
+/** TikTok's public profile embed: lists the account's most recent videos (about 10-15, no paging). */
+export async function viaEmbed(user: string): Promise<AccountItem[]> {
+  const r = await fetch(`https://www.tiktok.com/embed/@${encodeURIComponent(user)}`, {
+    headers: { "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0 Safari/537.36", "Accept-Language": "en-US,en;q=0.9" },
+    signal: AbortSignal.timeout(15000),
+  }).catch(() => null);
+  if (!r?.ok) return [];
+  const html = await r.text();
+  for (const m of html.matchAll(/<script[^>]*type="application\/json"[^>]*>([\s\S]*?)<\/script>/g)) {
+    let d: any; try { d = JSON.parse(m[1]!); } catch { continue; }
+    const src = d?.source?.data; if (!src) continue;
+    for (const v of Object.values<any>(src)) {
+      if (!Array.isArray(v?.videoList)) continue;
+      return v.videoList.map((x: any) => ({ id: String(x.id ?? ""), title: String(x.title ?? x.desc ?? "").slice(0, 200), cover: String(x.coverUrl ?? ""), clean: true }))
+        .filter((x: AccountItem) => /^\d+$/.test(x.id));
+    }
+  }
+  return [];
+}
