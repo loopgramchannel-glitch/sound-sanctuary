@@ -22,10 +22,17 @@ export function mixFeed<T extends Pick<PostT, "pinned" | "createdAt" | "category
   const rest = list.filter((p) => !p.pinned);
   const r = rng(seed);
   for (let i = rest.length - 1; i > 0; i--) { const j = Math.floor(r() * (i + 1)); [rest[i], rest[j]] = [rest[j]!, rest[i]!]; }
-  for (let i = 1; i < rest.length; i++) {
-    if (group(rest[i]!) !== group(rest[i - 1]!)) continue;
-    const j = rest.findIndex((p, k) => k > i && group(p) !== group(rest[i - 1]!));
-    if (j > 0) [rest[i], rest[j]] = [rest[j]!, rest[i]!];
+  // Buckets per group (already shuffled); always take from the fullest bucket that isn't the last one used.
+  const buckets = new Map<string, T[]>();
+  for (const p of rest) { const k = group(p); (buckets.get(k) ?? buckets.set(k, []).get(k)!).push(p); }
+  const out: T[] = [];
+  let last = "";
+  while (out.length < rest.length) {
+    let pick = "", size = -1;
+    for (const [k, v] of buckets) if (v.length && k !== last && (v.length > size || (v.length === size && r() < 0.5))) { pick = k; size = v.length; }
+    if (!pick) pick = last;
+    out.push(buckets.get(pick)!.shift()!);
+    last = pick;
   }
-  return [...pinned, ...rest];
+  return [...pinned, ...out];
 }
