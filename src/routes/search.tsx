@@ -9,10 +9,10 @@ import { PostTile } from "@/components/PostTile";
 import { AdSlot } from "@/components/AdSlot";
 import { searchAdAfter } from "@/lib/search-ads";
 import { useAuth } from "@/hooks/useAuth";
-import { ShortTile, ShortsShelf } from "@/components/Shorts";
+import { ShortTile } from "@/components/Shorts";
 import { postsQuery } from "@/lib/posts-query";
 import { usePostStats } from "@/lib/use-post-stats";
-import { searchPosts } from "@/lib/local-search";
+import { searchPosts, searchSuggestions } from "@/lib/local-search";
 
 export const Route = createFileRoute("/search")({
   validateSearch: z.object({ q: z.string().max(100).catch("") }),
@@ -61,11 +61,7 @@ function SearchPage() {
     : filter === "Shorts" ? hits.filter((p) => postIsShort(p, ratios))
     : filter === "Videos" ? hits.filter((p) => !postIsShort(p, ratios))
     : hits.filter((p) => p.category === filter);
-  const t = text.trim().toLowerCase();
-  const suggestions = t ? [...new Set([
-    ...data.map((p) => p.category).filter((c) => c && c.toLowerCase().includes(t)),
-    ...data.map((p) => p.title).filter((x) => x && x.toLowerCase().includes(t)),
-  ])].slice(0, 8) : [];
+  const suggestions = searchSuggestions(data, text);
   const pick = (s: string) => { setText(s); setFocus(false); nav({ to: "/search", search: { q: s }, replace: true }); (document.activeElement as HTMLElement)?.blur(); };
   const chip = (on: boolean) => `shrink-0 rounded-full px-4 py-1.5 text-sm font-medium ${on ? "bg-primary text-primary-foreground shadow-glow" : "bg-secondary hover:bg-accent"}`;
   const back = () => { if (window.history.length > 1) window.history.back(); else nav({ to: "/" }); };
@@ -125,9 +121,8 @@ function SearchPage() {
               const row = (p: (typeof videos)[number]) => <PostTile key={p.id} post={p} compact views={stats[p.id]?.views} />;
               return (
                 <>
-                  {videos.slice(0, 2).map((p, j) => <div key={p.id}>{row(p)}{searchAdAfter(j, adAfter, adEvery) && videos.length > j + 1 && <AdSlot kind="search" className="mt-3" />}</div>)}
-                  {shorts.length > 0 && <div className="-mx-2"><ShortsShelf posts={shorts} /></div>}
-                  {videos.slice(2).map((p, j) => <div key={p.id}>{row(p)}{searchAdAfter(j + 2, adAfter, adEvery) && <AdSlot kind="search" className="mt-3" />}</div>)}
+                  {videos.map((p, j) => <div key={p.id}>{row(p)}{searchAdAfter(j, adAfter, adEvery) && videos.length > j + 1 && <AdSlot kind="search" className="mt-3" />}</div>)}
+                  {shorts.length > 0 && <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-4">{shorts.map((p) => <ShortTile key={p.id} post={p} className="w-full" />)}</div>}
                 </>
               );
             })()}
