@@ -16,6 +16,7 @@ export const studioImportTikTok = createServerFn({ method: "POST" })
     if (need.some((k) => !process.env[k])) throw new Error("503: Media bucket isn't set up.");
 
     const url = await canonicalTikTok(data.url);
+    const source = await assertNew(url);
     const d = await resolveTikTok(url);
     const abs = (u: string) => (u.startsWith("http") ? u : `https://www.tikwm.com${u}`);
 
@@ -53,6 +54,7 @@ export const studioImportTikTok = createServerFn({ method: "POST" })
       imageUrl,
       title: String(d.title || "").slice(0, 200),
       ratio: w && h ? Math.round((w / h) * 1000) / 1000 : 0.5625,
+      source,
     };
   });
 const UA = "Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Mobile/15E148 Safari/604.1";
@@ -135,4 +137,15 @@ async function viaCobalt(url: string): Promise<Resolved | null> {
   if (!base) return null;
   const j: any = await fetch(base.replace(/\/$/, "") + "/", { method: "POST", headers: { Accept: "application/json", "Content-Type": "application/json", ...(process.env["COBALT_API_KEY"] ? { Authorization: `Api-Key ${process.env["COBALT_API_KEY"]}` } : {}) }, body: JSON.stringify({ url }), signal: AbortSignal.timeout(20000) }).then((r) => r.json()).catch(() => null);
   return j?.url ? { play: j.url } : null;
+}
+
+/** Stops a video that's already in the library from being downloaded and saved again (409). */
+export async function assertNew(url: string): Promise<string> {
+  const { sourceKey, findDuplicate } = await import("./posts");
+  const key = sourceKey(url);
+  if (!key) return "";
+  const { readPosts } = await import("./posts.functions");
+  const dup = findDuplicate(await readPosts().catch(() => []), key);
+  if (dup) throw new Error(`409: Already saved: "${dup.title || "Untitled"}". This video is in your library.`);
+  return key;
 }
