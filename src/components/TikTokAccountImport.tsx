@@ -37,13 +37,14 @@ export function TikTokAccountImport({ onChange }: { onChange: () => void }) {
         const r = await studioImportTikTok({ data: { token, url } });
         const post = Post.parse({
           id: `tt-${id}`.slice(0, 64).toLowerCase().replace(/[^a-z0-9-]/g, "-"),
-          title: r.title || fallbackTitle, videoUrl: r.videoUrl, imageUrl: r.imageUrl, ratio: r.ratio,
+          title: r.title || fallbackTitle, videoUrl: r.videoUrl, imageUrl: r.imageUrl, ratio: r.ratio, source: r.source,
           published: true, createdAt: Date.now(),
         });
         await studioPostSave({ data: { token: (await getToken())!, post } });
         return "saved" as const;
       } catch (e) {
         const c = code(e);
+        if (c === 409) return "skipped" as const; // already in the library: never saved twice
         if (c === 400 || c === 404) return "skipped" as const; // slideshow, private or removed: filtered out
         if (c === 401) throw e;
         await sleep(4000 * (attempt + 1));

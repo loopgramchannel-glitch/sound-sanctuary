@@ -39,6 +39,8 @@ export const studioImportYouTube = createServerFn({ method: "POST" })
     if (!id) throw new Error("400: That isn't a YouTube link.");
     const need = ["R2_ACCESS_KEY_ID", "R2_SECRET_ACCESS_KEY", "R2_ENDPOINT", "R2_BUCKET_NAME", "R2_PUBLIC_URL"];
     if (need.some((k) => !process.env[k])) throw new Error("503: Media bucket isn't set up.");
+    const { assertNew } = await import("./tiktok-import.functions");
+    const source = await assertNew(`https://www.youtube.com/watch?v=${id}`);
 
     const isShort = /\/shorts\//i.test(data.url);
     let src = await viaCobalt(`https://www.youtube.com/watch?v=${id}`);
@@ -55,7 +57,7 @@ export const studioImportYouTube = createServerFn({ method: "POST" })
       void audit(me, "media.youtube.link", id, "ok", {});
       return {
         videoUrl: isShort ? `https://www.youtube.com/shorts/${id}` : `https://www.youtube.com/watch?v=${id}`,
-        imageUrl: `https://i.ytimg.com/vi/${id}/hqdefault.jpg`, title, ratio: isShort ? 0.5625 : 0, linked: true,
+        imageUrl: `https://i.ytimg.com/vi/${id}/hqdefault.jpg`, title, ratio: isShort ? 0.5625 : 0, linked: true, source,
       };
     }
 
@@ -92,5 +94,5 @@ export const studioImportYouTube = createServerFn({ method: "POST" })
 
     try { const { sendJob } = await import("./queue.server"); await sendJob({ kind: "transcode", key }); } catch { /* 10-minute scan catches it */ }
     void audit(me, "media.youtube.import", key, "ok", { size: buf.byteLength });
-    return { videoUrl: `${publicBase}/${key}`, imageUrl, title, ratio: w && h ? Math.round((w / h) * 1000) / 1000 : isShort ? 0.5625 : 0, linked: false };
+    return { videoUrl: `${publicBase}/${key}`, imageUrl, title, ratio: w && h ? Math.round((w / h) * 1000) / 1000 : isShort ? 0.5625 : 0, linked: false, source };
   });
