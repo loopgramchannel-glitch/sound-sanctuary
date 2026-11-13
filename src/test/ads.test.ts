@@ -1,0 +1,51 @@
+import { searchAdAfter } from "@/lib/search-ads";
+import { describe, expect, it } from "vitest";
+import { adPositions, AD_SLOTS } from "@/lib/ads";
+import { SiteSettings } from "@/lib/studio.functions";
+
+describe("ad unit slots", () => {
+  // The six live placements; a missing key breaks the page that mounts it.
+  it("has every placement wired", () => {
+    expect(Object.keys(AD_SLOTS).sort()).toEqual(["detail", "feed", "home", "search", "shorts", "sidebar", "watch"]);
+  });
+  it("sidebar menu unit is 1617834340 and on by default", () => {
+    expect(AD_SLOTS.sidebar.slot).toBe("1617834340");
+    expect(SiteSettings.parse({}).adSidebarOn).toBe(true);
+  });
+});
+
+describe("in-feed ad spacing", () => {
+  it("puts an ad after every 8th post", () => expect(adPositions(20, 8)).toEqual([7, 15]));
+  it("never puts an ad after the last post", () => expect(adPositions(8, 8)).toEqual([]));
+});
+
+describe("monetization defaults", () => {
+  it("ads on, both units on, every 8 posts", () => {
+    const s = SiteSettings.parse({});
+    expect([s.adsOn, s.adWatchOn, s.adFeedOn, s.adFeedEvery]).toEqual([true, true, true, 8]);
+  });
+  it("old saved premium/movie settings are dropped on read", () => {
+    const s = SiteSettings.parse({ banner: "hi", premiumOn: true, tmdbEnabled: true }) as Record<string, unknown>;
+    expect(s["banner"]).toBe("hi");
+    expect("premiumOn" in s || "tmdbEnabled" in s).toBe(false);
+  });
+});
+
+describe("dedicated ad units", () => {
+  it("search, home and shorts use their own slots", () =>
+    expect([AD_SLOTS.search.slot, AD_SLOTS.home.slot, AD_SLOTS.shorts.slot]).toEqual(["3314059398", "3619687862", "9878836853"]));
+  it("shorts ads on by default, every 5 shorts", () => {
+    const s = SiteSettings.parse({});
+    expect([s.adShortsOn, s.adShortsEvery]).toEqual([true, 5]);
+  });
+  it("search ads on by default, once after 2 results", () => {
+    const s = SiteSettings.parse({});
+    expect([s.adSearchOn, s.adSearchAfter, s.adSearchEvery]).toEqual([true, 2, 0]);
+  });
+  it("search ad repeats every N after the first", () => {
+    const at = [...Array(12).keys()].filter((i) => searchAdAfter(i, 2, 4)).map((i) => i + 1);
+    expect(at).toEqual([2, 6, 10]);
+    expect([...Array(12).keys()].filter((i) => searchAdAfter(i, 3, 0)).map((i) => i + 1)).toEqual([3]);
+  });
+  it("every unit is on by default", () => expect(SiteSettings.parse({}).adUnitsOff).toEqual([]));
+});

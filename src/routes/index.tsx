@@ -1,23 +1,35 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { z } from "zod";
+import { Page } from "@/components/lg";
+import { VideoFeed } from "@/components/VideoFeed";
+import { postsQuery } from "@/lib/posts-query";
+import { useSuspenseQuery } from "@tanstack/react-query";
+import { ContinueWatching } from "@/components/ContinueWatching";
 
-// The home route ships no og:image, so serve-time hosting can inject the
-// project's social preview (explicit og:image or latest screenshot).
 export const Route = createFileRoute("/")({
-  component: Index,
+  validateSearch: z.object({ c: z.string().max(40).optional() }),
+  head: () => ({
+    meta: [
+      { title: "LoopgramChannel — Videos, Shorts, music & gaming" },
+      { name: "description", content: "Watch the latest videos and Shorts from LoopgramChannel: gaming, music, news and more." },
+      { property: "og:title", content: "LoopgramChannel — Videos, Shorts, music & gaming" },
+      { property: "og:description", content: "Watch the latest videos and Shorts from LoopgramChannel." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
+    ],
+  }),
+  loader: ({ context }) => context.queryClient.ensureQueryData(postsQuery),
+  component: Home,
 });
 
-// IMPORTANT: Replace this placeholder. See ./README.md for routing conventions.
-function Index() {
+function Home() {
+  const { c } = Route.useSearch();
+  const { data } = useSuspenseQuery(postsQuery);
   return (
-    <div
-      className="flex min-h-screen items-center justify-center"
-      style={{ backgroundColor: "#fcfbf8" }}
-    >
-      <img
-        data-lovable-blank-page-placeholder="REMOVE_THIS"
-        src="https://cdn.gpteng.co/blank-app-v1.svg"
-        alt="Your app will live here!"
-      />
-    </div>
+    <Page>
+      <h1 className="sr-only">LoopgramChannel videos</h1>
+      <ContinueWatching posts={data} />
+      <VideoFeed c={c} />
+    </Page>
   );
 }

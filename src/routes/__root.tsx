@@ -4,12 +4,17 @@ import {
   Link,
   createRootRouteWithContext,
   useRouter,
+  useRouterState,
   HeadContent,
   Scripts,
   type ErrorComponentProps,
 } from "@tanstack/react-router";
 import { useEffect, type ReactNode } from "react";
 
+import { Shell } from "@/components/Shell";
+import { Toaster } from "@/components/ui/sonner";
+import { ShareSheet } from "@/components/ShareSheet";
+import { AuthProvider, useAuth } from "@/hooks/useAuth";
 import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
 
@@ -75,27 +80,58 @@ function ErrorComponent({ error, reset }: ErrorComponentProps) {
 
 export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()({
   head: () => ({
-    // Replace these placeholders with the app's name and description when first building the app.
-    // Each content route, / included, must still set its own head(). Never add og:image or
-    // twitter:image here: every page without its own would inherit the root's preview image.
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Lovable App" },
-      { name: "description", content: "Lovable Generated Project" },
-      { name: "author", content: "Lovable" },
-      { property: "og:title", content: "Lovable App" },
-      { property: "og:description", content: "Lovable Generated Project" },
-      { property: "og:type", content: "website" },
-      { name: "twitter:card", content: "summary_large_image" },
-      { name: "twitter:site", content: "@Lovable" },
+      { title: "LoopgramChannel" },
+      { name: "description", content: "Endless movie and TV discovery." },
+      { name: "theme-color", content: "#0f0f0f" },
+      { name: "mobile-web-app-capable", content: "yes" },
+      { name: "apple-mobile-web-app-capable", content: "yes" },
+      { name: "apple-mobile-web-app-title", content: "Loopgram" },
+      { name: "apple-mobile-web-app-status-bar-style", content: "black-translucent" },
     ],
     links: [
       {
         rel: "stylesheet",
         href: appCss,
       },
-      { rel: "icon", href: "/favicon.ico", type: "image/x-icon" },
+      { rel: "icon", href: "/favicon.ico", sizes: "any" },
+      { rel: "shortcut icon", href: "/favicon.ico" },
+      { rel: "icon", href: "/icon-192.png", type: "image/png", sizes: "192x192" },
+      { rel: "icon", href: "/icon-512.png", type: "image/png", sizes: "512x512" },
+      { rel: "icon", href: "/favicon.png", type: "image/png", sizes: "64x64" },
+      { rel: "manifest", href: "/manifest.webmanifest" },
+      { rel: "apple-touch-icon", href: "/icon-192.png", sizes: "192x192" },
+      { rel: "preconnect", href: "https://www.youtube-nocookie.com" },
+      { rel: "dns-prefetch", href: "https://www.youtube-nocookie.com" },
+      { rel: "preconnect", href: "https://www.youtube.com" },
+      { rel: "dns-prefetch", href: "https://www.youtube.com" },
+      { rel: "preconnect", href: "https://i.ytimg.com" },
+      // YouTube's video chunks and player script come from these hosts; warming them cuts startup time.
+      { rel: "dns-prefetch", href: "https://rr1---sn-googlevideo.googlevideo.com" },
+      { rel: "preconnect", href: "https://www.google.com" },
+      { rel: "preconnect", href: "https://static.doubleclick.net" },
+      { rel: "preconnect", href: "https://media.loopgramchannel.com", crossOrigin: "anonymous" },
+      { rel: "dns-prefetch", href: "https://media.loopgramchannel.com" },
+      { rel: "dns-prefetch", href: "https://i.ytimg.com" },
+      { rel: "preconnect", href: "https://www.gstatic.com", crossOrigin: "anonymous" },
+      { rel: "dns-prefetch", href: "https://googlevideo.com" },
+      { rel: "dns-prefetch", href: "https://jnn-pa.googleapis.com" },
+      { rel: "dns-prefetch", href: "https://static.doubleclick.net" },
+      { rel: "preconnect", href: "https://googleads.g.doubleclick.net" },
+      { rel: "dns-prefetch", href: "https://googleads.g.doubleclick.net" },
+      { rel: "dns-prefetch", href: "https://www.google.com" },
+      { rel: "preconnect", href: "https://fonts.googleapis.com" },
+      { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "anonymous" },
+      { rel: "stylesheet", href: "https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700;900&display=swap" },
+    ],
+    scripts: [
+      {
+        async: true,
+        src: "https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1332482197214084",
+        crossOrigin: "anonymous",
+      },
     ],
   }),
   shellComponent: RootShell,
@@ -124,7 +160,37 @@ function RootComponent() {
   return (
     <QueryClientProvider client={queryClient}>
       {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
-      <Outlet />
+      <AuthProvider>
+        <Frame />
+      </AuthProvider>
+      <Toaster position="bottom-center" />
+      <ShareSheet />
+
     </QueryClientProvider>
+  );
+}
+
+/** Studio has its own layout; public pages get the site Shell, banner and maintenance gate. */
+function Frame() {
+  const path = useRouterState({ select: (r) => r.location.pathname });
+  const { settings } = useAuth();
+  if (path.startsWith("/studio")) return <Outlet />;
+  const open = path.startsWith("/login");
+  return (
+    <>
+      {settings?.bannerOn && settings.banner && (
+        <div role="status" className="bg-primary px-4 py-2 text-center text-sm text-primary-foreground">{settings.banner}</div>
+      )}
+      <Shell>
+        {settings?.maintenance && !open ? (
+          <div className="flex min-h-[60vh] flex-col items-center justify-center px-4 text-center">
+            <h1 className="text-2xl font-black">LoopgramChannel will be back soon</h1>
+            <p className="mt-2 text-sm text-muted-foreground">We're making improvements. Please check back shortly.</p>
+          </div>
+        ) : (
+          <Outlet />
+        )}
+      </Shell>
+    </>
   );
 }
