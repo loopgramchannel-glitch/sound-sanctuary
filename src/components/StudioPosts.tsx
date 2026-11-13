@@ -18,6 +18,7 @@ import { timeAgo } from "@/lib/posts-query";
 import { studioImportTikTok } from "@/lib/tiktok-import.functions";
 import { isTikTokUrl, youTubeId } from "@/lib/tiktok";
 import { studioImportYouTube } from "@/lib/youtube-import.functions";
+import { TikTokAccountImport } from "@/components/TikTokAccountImport";
 
 const btn = "inline-flex h-9 items-center gap-1 rounded-lg border px-3 text-xs hover:bg-accent disabled:opacity-50";
 const primary = "inline-flex h-9 items-center gap-1 rounded-lg bg-primary px-3 text-xs font-semibold text-primary-foreground disabled:opacity-50";
@@ -50,6 +51,7 @@ export function PostsPanel() {
         ))}
       </div>
       <button className={primary} onClick={() => setEdit(Post.parse({ id: newId(), createdAt: Date.now() }))}><Plus className="h-4 w-4" />New post</button>
+      <TikTokAccountImport onChange={done} />
       <div className="scrollbar-none flex gap-2 overflow-x-auto">
         {(["All", "Videos", "Shorts"] as const).map((t) => (
           <button key={t} onClick={() => setTab(t)} className={`shrink-0 rounded-lg px-3 py-1.5 text-sm font-medium ${tab === t ? "bg-foreground text-background" : "bg-secondary hover:bg-accent"}`}>{t}</button>

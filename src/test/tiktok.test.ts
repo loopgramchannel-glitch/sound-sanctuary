@@ -24,3 +24,20 @@ describe("youTubeId", () => {
     expect(youTubeId("https://youtube.com/watch?v=short")).toBeNull();
   });
 });
+
+import { isCleanPlay, tiktokHandle, videoLinks } from "@/lib/tiktok-account";
+describe("tiktok account import", () => {
+  it("drops photo slideshows and posts without a clean stream", () => {
+    expect(isCleanPlay({ images: ["a.jpg"], play: "x" })).toBe(false);
+    expect(isCleanPlay({})).toBe(false);
+    expect(isCleanPlay({ hdplay: "x" })).toBe(true);
+  });
+  it("reads usernames from @name and profile links", () => {
+    expect(tiktokHandle("@loop.gram")).toBe("loop.gram");
+    expect(tiktokHandle("https://www.tiktok.com/@abc_1?lang=en")).toBe("abc_1");
+    expect(tiktokHandle("not a name!")).toBeNull();
+  });
+  it("dedupes pasted links by video id", () => {
+    expect(videoLinks("https://www.tiktok.com/@a/video/1 https://www.tiktok.com/@a/video/1?x=1 https://x.com/y")).toHaveLength(1);
+  });
+});
