@@ -12,6 +12,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { usePostStats } from "@/lib/use-post-stats";
 import type { PostT } from "@/lib/posts";
 import { useReveal } from "@/lib/infinite";
+import { hourSeed, mixFeed } from "@/lib/feed-mix";
 
 export function VideoGrid({ list, views }: { list: PostT[]; views: Record<string, { views?: number } | undefined> }) {
   const { settings } = useAuth();
@@ -35,7 +36,8 @@ export function VideoGrid({ list, views }: { list: PostT[]; views: Record<string
 }
 
 export function VideoFeed({ c }: { c?: string | undefined }) {
-  const { data } = useSuspenseQuery(postsQuery);
+  const { data: raw } = useSuspenseQuery(postsQuery);
+  const data = mixFeed(raw, hourSeed());
   const ratios = useRatios(data.map((p) => p.videoUrl));
   const short = (p: PostT) => postIsShort(p, ratios);
   const stats = usePostStats(data.map((p) => p.id));

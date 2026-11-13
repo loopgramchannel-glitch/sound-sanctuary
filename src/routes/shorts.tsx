@@ -6,6 +6,7 @@ import { postIsShort, useRatios } from "@/components/PostView";
 import { ShortsPlayer } from "@/components/Shorts";
 import { postsQuery } from "@/lib/posts-query";
 import { shareLink } from "@/lib/share";
+import { hourSeed, mixFeed } from "@/lib/feed-mix";
 
 export const Route = createFileRoute("/shorts")({
   head: () => ({
@@ -25,7 +26,7 @@ export const Route = createFileRoute("/shorts")({
 function ShortsPage() {
   const { data } = useSuspenseQuery(postsQuery);
   const ratios = useRatios(data.map((p) => p.videoUrl));
-  const shorts = data.filter((p) => postIsShort(p, ratios));
+  const shorts = mixFeed(data, hourSeed()).filter((p) => postIsShort(p, ratios));
   if (!shorts.length) {
     return (
       <Page>
