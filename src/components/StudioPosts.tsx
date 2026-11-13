@@ -101,7 +101,7 @@ export function PostsPanel() {
   );
 }
 
-function TikTokBox({ onDone }: { onDone: (r: { videoUrl: string; imageUrl: string; title: string; ratio: number }) => void }) {
+function TikTokBox({ onDone }: { onDone: (r: { videoUrl: string; imageUrl: string; title: string; ratio: number; source: string }) => void }) {
   const { getToken } = useAuth();
   const [url, setUrl] = useState("");
   const [busy, setBusy] = useState(false);
@@ -156,7 +156,7 @@ function Editor({ value, busy, onClose, onSave, onDelete }: { value: PostT; busy
         </div>
         {v.videoUrl && !parseVideoSource(v.videoUrl).embed && <ThumbPicker file={file} videoUrl={v.videoUrl} current={v.imageUrl} auto={autoThumb && !v.imageUrl} onPick={(u) => { setAutoThumb(false); set("imageUrl", u); }} />}
         <TikTokBox onDone={(r) => {
-          setV((o) => ({ ...o, videoUrl: r.videoUrl, ratio: r.ratio, imageUrl: o.imageUrl || r.imageUrl, title: o.title.trim() ? o.title : r.title }));
+          setV((o) => ({ ...o, videoUrl: r.videoUrl, source: r.source, ratio: r.ratio, imageUrl: o.imageUrl || r.imageUrl, title: o.title.trim() ? o.title : r.title }));
           if (!r.imageUrl && !v.imageUrl) setAutoThumb(true);
         }} />
         <LinkBox onUse={(u) => {
