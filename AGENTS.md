@@ -60,4 +60,3 @@ use the editor.
 - YouTube imports: `studioImportYouTube` → R2 via optional COBALT_API_URL, else player API. Why: YouTube blocks cloud IPs.
 - No shop page or affiliate links (owner removed them); description links render via `<LinkedText>`.
 
-- TikTok account imports (TikTokAccountImport.tsx) list pages via `studioTikTokAccountPage` and import each video through the same `studioImportTikTok` + `studioPostSave` as single links. Why: account imports stay byte-identical to single imports (clean, in R2).
