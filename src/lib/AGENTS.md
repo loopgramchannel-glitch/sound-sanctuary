@@ -2,3 +2,4 @@
 - Growth helpers (share tags, ?t= moments, watch history, up-next) are pure functions in growth.ts; watch history stays on-device (watch-history.ts). Why: tested in one place, zero server cost.
 - Phone alerts: self-hosted Web Push (webpush.ts, VAPID_PRIVATE_KEY); subs in D1 `push_subs`; broadcast only on first PUBLISHED; first 1000 inline, rest as chained D1 `pushpage` jobs (one page per job). Why: no new keys, no worker timeout at any audience size.
 - Stat flush: `flushDelay()` 3s→30s+jitter, `chunkStmts` ≤500. Why: flat D1 write rate (single writer).
+- Home feed and /shorts order posts via mixFeed() (feed-mix.ts): hourly seeded shuffle, no two neighbours from the same group (import batch). Why: TikTok-style variety with no SSR/hydration mismatch.
