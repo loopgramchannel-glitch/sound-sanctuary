@@ -67,7 +67,7 @@ export async function viaCreatorFeed(user: string, cursor: string) {
   }
   if (!secUid) return null;
   const device = String(7_000_000_000_000_000_000n + BigInt(Math.floor(Math.random() * 1e15)));
-  const q = new URLSearchParams({ aid: "1988", app_language: "en", app_name: "tiktok_web", count: "35", cursor: String(ms), device_id: device, device_platform: "web_pc", secUid, type: "1" });
+  const q = new URLSearchParams({ aid: "1988", app_language: "en", app_name: "tiktok_web", count: "15", cursor: String(ms), device_id: device, device_platform: "web_pc", secUid, type: "1" });
   let j: any = null;
   for (let i = 0; i < 3 && !Array.isArray(j?.itemList); i++) {
     j = await fetch(`https://www.tiktok.com/api/creator/item_list/?${q}`, { headers: { "User-Agent": DESKTOP_UA, Referer: `https://www.tiktok.com/@${user}` }, signal: AbortSignal.timeout(12000) })
