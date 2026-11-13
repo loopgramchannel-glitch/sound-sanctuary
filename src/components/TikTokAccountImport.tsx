@@ -23,8 +23,7 @@ export function TikTokAccountImport({ onChange }: { onChange: () => void }) {
   const { getToken } = useAuth();
   const [mode, setMode] = useState<"account" | "links">("account");
   const [input, setInput] = useState("");
-  const [count, setCount] = useState<number>(1000);
-  const [publish, setPublish] = useState(false);
+  const [count, setCount] = useState<number>(15);
   const [running, setRunning] = useState(false);
   const [st, setSt] = useState({ found: 0, saved: 0, skipped: 0, failed: 0, now: "" });
   const stop = useRef(false);
@@ -39,7 +38,7 @@ export function TikTokAccountImport({ onChange }: { onChange: () => void }) {
         const post = Post.parse({
           id: `tt-${id}`.slice(0, 64).toLowerCase().replace(/[^a-z0-9-]/g, "-"),
           title: r.title || fallbackTitle, videoUrl: r.videoUrl, imageUrl: r.imageUrl, ratio: r.ratio,
-          published: publish, createdAt: Date.now(),
+          published: true, createdAt: Date.now(),
         });
         await studioPostSave({ data: { token: (await getToken())!, post } });
         return "saved" as const;
@@ -106,10 +105,13 @@ export function TikTokAccountImport({ onChange }: { onChange: () => void }) {
       <div className="flex flex-wrap items-center gap-3 text-sm">
         <label className="flex items-center gap-2">How many
           <select value={count} disabled={running} onChange={(e) => setCount(Number(e.target.value))} className="rounded-lg border bg-background px-2 py-1">
-            {ACCOUNT_COUNTS.map((n) => <option key={n} value={n}>{n.toLocaleString()}</option>)}
+            {(ACCOUNT_COUNTS.includes(count as never) ? [] : [count]).concat([...ACCOUNT_COUNTS]).map((n) => <option key={n} value={n}>{n.toLocaleString()}</option>)}
           </select>
         </label>
-        <label className="flex items-center gap-2"><input type="checkbox" checked={publish} disabled={running} onChange={(e) => setPublish(e.target.checked)} />Publish right away</label>
+        <label className="flex items-center gap-2">or exact
+          <input type="number" min={1} max={10000} value={count} disabled={running} onChange={(e) => setCount(Math.max(1, Math.min(10000, Number(e.target.value) || 1)))} className="w-24 rounded-lg border bg-background px-2 py-1" />
+        </label>
+        <span className="text-xs text-muted-foreground">Videos go live right away.</span>
       </div>
       <div className="flex items-center gap-2">
         {running

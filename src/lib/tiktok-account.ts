@@ -1,5 +1,5 @@
 // Browser-safe helpers for the TikTok account importer.
-export const ACCOUNT_COUNTS = [100, 500, 1000, 2000, 5000, 10000] as const;
+export const ACCOUNT_COUNTS = [10, 15, 25, 50, 100, 500, 1000, 2000, 5000, 10000] as const;
 
 /** "@name", "name" or a tiktok.com/@name link → "name"; null when it isn't a username. */
 export function tiktokHandle(raw: string): string | null {
