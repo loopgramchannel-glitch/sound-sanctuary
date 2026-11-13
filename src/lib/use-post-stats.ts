@@ -1,0 +1,87 @@
+// Browser hooks: live counts, YouTube-style optimistic like toggle, and watch-time view counting.
+import { useEffect, useRef, useState } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { countPostView, getMyVote, getPostStats, votePost } from "./post-stats.functions";
+import { nextVote, VIEW_AFTER_SHORT_S, VIEW_AFTER_VIDEO_S, voteDelta, type PostStats, type Vote } from "./post-stats";
+
+export function viewerId(): string {
+  const k = "lg:viewer";
+  let v = localStorage.getItem(k);
+  if (!v || !/^[A-Za-z0-9_-]{16,64}$/.test(v)) {
+    v = Array.from(crypto.getRandomValues(new Uint8Array(16)), (b) => b.toString(16).padStart(2, "0")).join("");
+    localStorage.setItem(k, v);
+  }
+  return v;
+}
+
+const statsKey = (ids: string[]) => ["post-stats", [...ids].sort().join(",")];
+
+/** Views + likes for many posts in one request (cards, feeds). */
+export function usePostStats(ids: string[]): Record<string, PostStats> {
+  const list = [...new Set(ids)].slice(0, 100);
+  const q = useQuery({
+    queryKey: statsKey(list), enabled: list.length > 0, staleTime: 30_000,
+    // Edge-cached public endpoint first; the server function stays as a fallback.
+    queryFn: async () => {
+      try {
+        const r = await fetch(`/api/public/stats?ids=${encodeURIComponent([...list].sort().join(","))}`);
+        if (r.ok) return (await r.json()) as Record<string, PostStats>;
+      } catch { /* fall through */ }
+      return getPostStats({ data: { ids: list } });
+    },
+  });
+  return q.data ?? {};
+}
+
+/** One post: counts + this viewer's thumb, with instant (optimistic) updates. */
+export function usePostEngagement(id: string, short: boolean, active = true) {
+  const qc = useQueryClient();
+  const stats = usePostStats([id])[id];
+  const [vote, setVoteState] = useState<Vote>(0);
+  const [likes, setLikes] = useState<number | null>(null);
+  const [views, setViews] = useState<number | null>(null);
+
+  useEffect(() => { setLikes(null); setViews(null); setVoteState((Number(localStorage.getItem(`lg:vote:${id}`)) || 0) as Vote); }, [id]);
+  useEffect(() => { if (stats) { setLikes((l) => l ?? stats.likes); setViews((v) => v ?? stats.views); } }, [stats]);
+  // The viewer's own thumb is remembered on this device; ask the server only if this device has never seen the post.
+  useEffect(() => {
+    if (localStorage.getItem(`lg:vote:${id}`) !== null) return;
+    let off = false;
+    getMyVote({ data: { id, viewer: viewerId() } }).then((r) => { if (!off) { setVoteState(r.vote); localStorage.setItem(`lg:vote:${id}`, String(r.vote || 0)); } }).catch(() => {});
+    return () => { off = true; };
+  }, [id]);
+
+  // A view counts only after real watching time with the tab visible (YouTube counts intent, not loads).
+  const sent = useRef("");
+  useEffect(() => {
+    if (!active) return;
+    const need = (short ? VIEW_AFTER_SHORT_S : VIEW_AFTER_VIDEO_S) * 1000;
+    let watched = 0, last = Date.now();
+    const t = setInterval(() => {
+      const now = Date.now();
+      if (document.visibilityState === "visible") watched += now - last;
+      last = now;
+      if (watched >= need && sent.current !== id) {
+        sent.current = id; clearInterval(t);
+        // This device already counted a view of this post in the last 30 min: don't ask the server again.
+        const seenKey = `lg:seen:${id}`;
+        if (Number(localStorage.getItem(seenKey)) > now - 30 * 60_000) return;
+        localStorage.setItem(seenKey, String(now));
+        countPostView({ data: { id, viewer: viewerId() } }).then((r) => {
+          if (r.counted) { setViews((v) => (v ?? 0) + 1); qc.invalidateQueries({ queryKey: ["post-stats"] }); }
+        }).catch(() => {});
+      }
+    }, 500);
+    return () => clearInterval(t);
+  }, [id, short, qc, active]);
+
+  const tap = (t: 1 | -1) => {
+    const prev = vote, n = nextVote(prev, t);
+    setVoteState(n); localStorage.setItem(`lg:vote:${id}`, String(n));
+    setLikes((l) => Math.max(0, (l ?? 0) + voteDelta(prev, n).likes));
+    votePost({ data: { id, viewer: viewerId(), vote: n } })
+      .then((r) => { if (typeof r.likes === "number") setLikes(r.likes); })
+      .catch(() => { setVoteState(prev); localStorage.setItem(`lg:vote:${id}`, String(prev)); setLikes((l) => Math.max(0, (l ?? 0) - voteDelta(prev, n).likes)); });
+  };
+  return { vote, likes: likes ?? 0, views: views ?? 0, tap };
+}

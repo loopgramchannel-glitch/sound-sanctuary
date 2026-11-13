@@ -10,33 +10,219 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as ExploreRouteImport } from './routes/explore'
+import { Route as LoginRouteImport } from './routes/login'
+import { Route as NotificationsRouteImport } from './routes/notifications'
+import { Route as PostsRouteImport } from './routes/posts'
+import { Route as SearchRouteImport } from './routes/search'
+import { Route as SettingsRouteImport } from './routes/settings'
+import { Route as ShortsRouteImport } from './routes/shorts'
+import { Route as StudioRouteImport } from './routes/studio'
+import { Route as YouRouteImport } from './routes/you'
+import { Route as PostIdRouteImport } from './routes/post.$id'
+import { Route as ApiPublicHealthRouteImport } from './routes/api/public/health'
+import { Route as ApiPublicJobsRouteImport } from './routes/api/public/jobs'
+import { Route as ApiPublicSearchSyncRouteImport } from './routes/api/public/search-sync'
+import { Route as ApiPublicStatsRouteImport } from './routes/api/public/stats'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ExploreRoute = ExploreRouteImport.update({
+  id: '/explore',
+  path: '/explore',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LoginRoute = LoginRouteImport.update({
+  id: '/login',
+  path: '/login',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const NotificationsRoute = NotificationsRouteImport.update({
+  id: '/notifications',
+  path: '/notifications',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PostsRoute = PostsRouteImport.update({
+  id: '/posts',
+  path: '/posts',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SearchRoute = SearchRouteImport.update({
+  id: '/search',
+  path: '/search',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SettingsRoute = SettingsRouteImport.update({
+  id: '/settings',
+  path: '/settings',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ShortsRoute = ShortsRouteImport.update({
+  id: '/shorts',
+  path: '/shorts',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const StudioRoute = StudioRouteImport.update({
+  id: '/studio',
+  path: '/studio',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const YouRoute = YouRouteImport.update({
+  id: '/you',
+  path: '/you',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PostIdRoute = PostIdRouteImport.update({
+  id: '/post/$id',
+  path: '/post/$id',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiPublicHealthRoute = ApiPublicHealthRouteImport.update({
+  id: '/api/public/health',
+  path: '/api/public/health',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiPublicJobsRoute = ApiPublicJobsRouteImport.update({
+  id: '/api/public/jobs',
+  path: '/api/public/jobs',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiPublicSearchSyncRoute = ApiPublicSearchSyncRouteImport.update({
+  id: '/api/public/search-sync',
+  path: '/api/public/search-sync',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiPublicStatsRoute = ApiPublicStatsRouteImport.update({
+  id: '/api/public/stats',
+  path: '/api/public/stats',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/explore': typeof ExploreRoute
+  '/login': typeof LoginRoute
+  '/notifications': typeof NotificationsRoute
+  '/posts': typeof PostsRoute
+  '/search': typeof SearchRoute
+  '/settings': typeof SettingsRoute
+  '/shorts': typeof ShortsRoute
+  '/studio': typeof StudioRoute
+  '/you': typeof YouRoute
+  '/post/$id': typeof PostIdRoute
+  '/api/public/health': typeof ApiPublicHealthRoute
+  '/api/public/jobs': typeof ApiPublicJobsRoute
+  '/api/public/search-sync': typeof ApiPublicSearchSyncRoute
+  '/api/public/stats': typeof ApiPublicStatsRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/explore': typeof ExploreRoute
+  '/login': typeof LoginRoute
+  '/notifications': typeof NotificationsRoute
+  '/posts': typeof PostsRoute
+  '/search': typeof SearchRoute
+  '/settings': typeof SettingsRoute
+  '/shorts': typeof ShortsRoute
+  '/studio': typeof StudioRoute
+  '/you': typeof YouRoute
+  '/post/$id': typeof PostIdRoute
+  '/api/public/health': typeof ApiPublicHealthRoute
+  '/api/public/jobs': typeof ApiPublicJobsRoute
+  '/api/public/search-sync': typeof ApiPublicSearchSyncRoute
+  '/api/public/stats': typeof ApiPublicStatsRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/explore': typeof ExploreRoute
+  '/login': typeof LoginRoute
+  '/notifications': typeof NotificationsRoute
+  '/posts': typeof PostsRoute
+  '/search': typeof SearchRoute
+  '/settings': typeof SettingsRoute
+  '/shorts': typeof ShortsRoute
+  '/studio': typeof StudioRoute
+  '/you': typeof YouRoute
+  '/post/$id': typeof PostIdRoute
+  '/api/public/health': typeof ApiPublicHealthRoute
+  '/api/public/jobs': typeof ApiPublicJobsRoute
+  '/api/public/search-sync': typeof ApiPublicSearchSyncRoute
+  '/api/public/stats': typeof ApiPublicStatsRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/'
+  fullPaths:
+    | '/'
+    | '/explore'
+    | '/login'
+    | '/notifications'
+    | '/posts'
+    | '/search'
+    | '/settings'
+    | '/shorts'
+    | '/studio'
+    | '/you'
+    | '/post/$id'
+    | '/api/public/health'
+    | '/api/public/jobs'
+    | '/api/public/search-sync'
+    | '/api/public/stats'
   fileRoutesByTo: FileRoutesByTo
-  to: '/'
-  id: '__root__' | '/'
+  to:
+    | '/'
+    | '/explore'
+    | '/login'
+    | '/notifications'
+    | '/posts'
+    | '/search'
+    | '/settings'
+    | '/shorts'
+    | '/studio'
+    | '/you'
+    | '/post/$id'
+    | '/api/public/health'
+    | '/api/public/jobs'
+    | '/api/public/search-sync'
+    | '/api/public/stats'
+  id:
+    | '__root__'
+    | '/'
+    | '/explore'
+    | '/login'
+    | '/notifications'
+    | '/posts'
+    | '/search'
+    | '/settings'
+    | '/shorts'
+    | '/studio'
+    | '/you'
+    | '/post/$id'
+    | '/api/public/health'
+    | '/api/public/jobs'
+    | '/api/public/search-sync'
+    | '/api/public/stats'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  ExploreRoute: typeof ExploreRoute
+  LoginRoute: typeof LoginRoute
+  NotificationsRoute: typeof NotificationsRoute
+  PostsRoute: typeof PostsRoute
+  SearchRoute: typeof SearchRoute
+  SettingsRoute: typeof SettingsRoute
+  ShortsRoute: typeof ShortsRoute
+  StudioRoute: typeof StudioRoute
+  YouRoute: typeof YouRoute
+  PostIdRoute: typeof PostIdRoute
+  ApiPublicHealthRoute: typeof ApiPublicHealthRoute
+  ApiPublicJobsRoute: typeof ApiPublicJobsRoute
+  ApiPublicSearchSyncRoute: typeof ApiPublicSearchSyncRoute
+  ApiPublicStatsRoute: typeof ApiPublicStatsRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -48,11 +234,123 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/explore': {
+      id: '/explore'
+      path: '/explore'
+      fullPath: '/explore'
+      preLoaderRoute: typeof ExploreRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/login': {
+      id: '/login'
+      path: '/login'
+      fullPath: '/login'
+      preLoaderRoute: typeof LoginRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/notifications': {
+      id: '/notifications'
+      path: '/notifications'
+      fullPath: '/notifications'
+      preLoaderRoute: typeof NotificationsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/posts': {
+      id: '/posts'
+      path: '/posts'
+      fullPath: '/posts'
+      preLoaderRoute: typeof PostsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/search': {
+      id: '/search'
+      path: '/search'
+      fullPath: '/search'
+      preLoaderRoute: typeof SearchRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/settings': {
+      id: '/settings'
+      path: '/settings'
+      fullPath: '/settings'
+      preLoaderRoute: typeof SettingsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/shorts': {
+      id: '/shorts'
+      path: '/shorts'
+      fullPath: '/shorts'
+      preLoaderRoute: typeof ShortsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/studio': {
+      id: '/studio'
+      path: '/studio'
+      fullPath: '/studio'
+      preLoaderRoute: typeof StudioRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/you': {
+      id: '/you'
+      path: '/you'
+      fullPath: '/you'
+      preLoaderRoute: typeof YouRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/post/$id': {
+      id: '/post/$id'
+      path: '/post/$id'
+      fullPath: '/post/$id'
+      preLoaderRoute: typeof PostIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/health': {
+      id: '/api/public/health'
+      path: '/api/public/health'
+      fullPath: '/api/public/health'
+      preLoaderRoute: typeof ApiPublicHealthRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/jobs': {
+      id: '/api/public/jobs'
+      path: '/api/public/jobs'
+      fullPath: '/api/public/jobs'
+      preLoaderRoute: typeof ApiPublicJobsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/search-sync': {
+      id: '/api/public/search-sync'
+      path: '/api/public/search-sync'
+      fullPath: '/api/public/search-sync'
+      preLoaderRoute: typeof ApiPublicSearchSyncRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/stats': {
+      id: '/api/public/stats'
+      path: '/api/public/stats'
+      fullPath: '/api/public/stats'
+      preLoaderRoute: typeof ApiPublicStatsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  ExploreRoute: ExploreRoute,
+  LoginRoute: LoginRoute,
+  NotificationsRoute: NotificationsRoute,
+  PostsRoute: PostsRoute,
+  SearchRoute: SearchRoute,
+  SettingsRoute: SettingsRoute,
+  ShortsRoute: ShortsRoute,
+  StudioRoute: StudioRoute,
+  YouRoute: YouRoute,
+  PostIdRoute: PostIdRoute,
+  ApiPublicHealthRoute: ApiPublicHealthRoute,
+  ApiPublicJobsRoute: ApiPublicJobsRoute,
+  ApiPublicSearchSyncRoute: ApiPublicSearchSyncRoute,
+  ApiPublicStatsRoute: ApiPublicStatsRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

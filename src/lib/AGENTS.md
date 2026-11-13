@@ -1,0 +1,4 @@
+- On loopgramchannel.com, Firebase authDomain = own host (`pickAuthDomain()`, auth-domain.ts); src/server.ts proxies /__/auth/* and /__/firebase/* to FIREBASE_AUTH_DOMAIN. Why: Google's picker shows the brand, not firebaseapp.com.
+- Growth helpers (share tags, ?t= moments, watch history, up-next) are pure functions in growth.ts; watch history stays on-device (watch-history.ts). Why: tested in one place, zero server cost.
+- Phone alerts: self-hosted Web Push (webpush.ts, VAPID_PRIVATE_KEY); subs in D1 `push_subs`; broadcast only on first PUBLISHED; first 1000 inline, rest as chained D1 `pushpage` jobs (one page per job). Why: no new keys, no worker timeout at any audience size.
+- Stat flush: `flushDelay()` 3s→30s+jitter, `chunkStmts` ≤500. Why: flat D1 write rate (single writer).
