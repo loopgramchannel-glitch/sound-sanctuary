@@ -47,7 +47,7 @@ export function TikTokAccountImport({ onChange }: { onChange: () => void }) {
         if (c === 409) return "skipped" as const; // already in the library: never saved twice
         if (c === 400 || c === 404) return "skipped" as const; // slideshow, private or removed: filtered out
         if (c === 401) throw e;
-        await sleep(4000 * (attempt + 1));
+        await sleep(2000 * (attempt + 1));
       }
     }
     return "failed" as const;
@@ -63,12 +63,18 @@ export function TikTokAccountImport({ onChange }: { onChange: () => void }) {
       const r = await importOne(url, id, title);
       s[r]++;
       if (r === "saved") { done.current.add(id); localStorage.setItem(DONE_KEY, JSON.stringify([...done.current])); if (s.saved % 10 === 1) onChange(); }
-      tick(); await sleep(1500);
+      tick(); await sleep(300);
     };
+    // Imports up to 3 videos at once (each still goes through the single-link pipeline).
+    const pool = async (jobs: (() => Promise<void>)[]) => {
+      let i = 0;
+      await Promise.all(Array.from({ length: 3 }, async () => { while (i < jobs.length && !stop.current) await jobs[i++]!(); }));
+    };
+    let endedEarly = false;
     try {
       if (mode === "links") {
         const links = videoLinks(input).slice(0, count); s.found = links.length; tick();
-        for (const u of links) { if (stop.current) break; await handle(u, u.match(/\/video\/(\d+)/)?.[1] ?? u, ""); }
+        await pool(links.map((u) => () => handle(u, u.match(/\/video\/(\d+)/)?.[1] ?? u, "")));
       } else {
         const user = tiktokHandle(input); if (!user) throw new Error("Type a TikTok username like @name");
         let cursor = "0", more = true;
@@ -76,14 +82,16 @@ export function TikTokAccountImport({ onChange }: { onChange: () => void }) {
           const token = await getToken(); if (!token) throw new Error("Not signed in");
           const page = await studioTikTokAccountPage({ data: { token, user, cursor } });
           cursor = page.cursor; more = page.hasMore;
-          for (const v of page.items) {
-            if (stop.current || s.saved + s.skipped + s.failed >= count) break;
-            s.found++;
-            if (!v.clean) { s.skipped++; tick(); continue; } // clean-play filter
+          const take = page.items.slice(0, Math.max(0, count - s.found));
+          s.found += take.length; tick();
+          await pool(take.map((v) => async () => {
+            if (!v.clean) { s.skipped++; tick(); return; } // clean-play filter
             await handle(`https://www.tiktok.com/@${user}/video/${v.id}`, v.id, v.title);
-          }
+          }));
         }
+        endedEarly = !stop.current && s.found < count;
       }
+      if (endedEarly) toast.info(`TikTok only shared ${s.found} recent videos for this account. To get more, use "Paste many links".`, { duration: 10000 });
       toast.success(`Done: ${s.saved} clean videos saved to your media library`);
     } catch (e) { toast.error(msg(e).replace(/^\d{3}:\s*/, "")); }
     finally { setRunning(false); tick(""); onChange(); }

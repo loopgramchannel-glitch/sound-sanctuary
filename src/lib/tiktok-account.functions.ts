@@ -12,12 +12,11 @@ export const studioTikTokAccountPage = createServerFn({ method: "POST" })
     const { requireOwner } = await import("./auth.server");
     await requireOwner(data.token).catch(() => { throw new Error("401: Could not verify session"); });
     let j: any = null;
-    for (let i = 0; i < 3 && !j?.data; i++) {
-      if (i) await new Promise((r) => setTimeout(r, 1500));
+    for (let i = 0; i < 1 && !j?.data; i++) {
       j = await fetch("https://www.tikwm.com/api/user/posts", {
         method: "POST", headers: { "User-Agent": UA, "Content-Type": "application/x-www-form-urlencoded" },
         body: `unique_id=${encodeURIComponent(data.user)}&count=35&cursor=${encodeURIComponent(data.cursor)}`,
-        signal: AbortSignal.timeout(15000),
+        signal: AbortSignal.timeout(6000),
       }).then((r) => r.json()).catch(() => null);
     }
     if (!j?.data) {
