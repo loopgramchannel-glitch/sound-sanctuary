@@ -17,7 +17,7 @@ export const Post = z.object({
   createdAt: z.number().int().nonnegative(),
 });
 export type PostT = z.infer<typeof Post>;
-export const Posts = z.array(Post).max(1000);
+export const Posts = z.array(Post).max(10000);
 
 /** Newest first, pinned on top. */
 export function sortPosts(list: PostT[]): PostT[] {
