@@ -5,5 +5,5 @@ const posts = [mk("Funny day #williamlast_krm"), mk("Hero time #williamlast_krm"
 test("suggestions are short keywords, and picking one finds every match", () => {
   const s = searchSuggestions(posts, "william");
   expect(s[0]).toBe("#williamlast_krm");
-  expect(searchPosts(posts, s[0]).length).toBe(2);
+  expect(searchPosts(posts, s[0] ?? "").length).toBe(2);
 });
