@@ -7,7 +7,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { studioImportTikTok } from "@/lib/tiktok-import.functions";
 import { studioTikTokAccountPage } from "@/lib/tiktok-account.functions";
 import { studioPostSave } from "@/lib/posts.functions";
-import { ACCOUNT_COUNTS, tiktokHandle, videoLinks } from "@/lib/tiktok-account";
+import { ACCOUNT_COUNTS, COLLECT_BOOKMARKLET, IMPORT_WORKERS, tiktokHandle, videoLinks } from "@/lib/tiktok-account";
 import { Post } from "@/lib/posts";
 
 const DONE_KEY = "lg:tiktok:imported";
@@ -63,12 +63,12 @@ export function TikTokAccountImport({ onChange }: { onChange: () => void }) {
       const r = await importOne(url, id, title);
       s[r]++;
       if (r === "saved") { done.current.add(id); localStorage.setItem(DONE_KEY, JSON.stringify([...done.current])); if (s.saved % 10 === 1) onChange(); }
-      tick(); await sleep(300);
+      tick();
     };
     // Imports up to 3 videos at once (each still goes through the single-link pipeline).
     const pool = async (jobs: (() => Promise<void>)[]) => {
       let i = 0;
-      await Promise.all(Array.from({ length: 3 }, async () => { while (i < jobs.length && !stop.current) await jobs[i++]!(); }));
+      await Promise.all(Array.from({ length: IMPORT_WORKERS }, async () => { while (i < jobs.length && !stop.current) await jobs[i++]!(); }));
     };
     let endedEarly = false;
     try {
@@ -110,7 +110,16 @@ export function TikTokAccountImport({ onChange }: { onChange: () => void }) {
       </div>
       {mode === "account"
         ? <input value={input} disabled={running} onChange={(e) => setInput(e.target.value)} placeholder="@username or tiktok.com/@username" className={field} />
-        : <textarea value={input} disabled={running} onChange={(e) => setInput(e.target.value)} rows={4} placeholder="Paste TikTok video links, one per line" className={field} />}
+        : <>
+          <div className="space-y-1 rounded-lg bg-secondary p-3 text-xs">
+            <p className="font-semibold">Get all videos of an account (up to 10,000):</p>
+            <p>1. Drag this button to your bookmarks bar: <a href={COLLECT_BOOKMARKLET} onClick={(e) => { e.preventDefault(); toast.info("Drag this button to your bookmarks bar"); }} className="ml-1 inline-block rounded bg-primary px-2 py-0.5 font-semibold text-primary-foreground">Loopgram: copy links</a></p>
+            <p>2. Open the account on tiktok.com in this browser and click the bookmark. It scrolls the whole account and copies every link.</p>
+            <p>3. Paste below and press Start.</p>
+          </div>
+          <textarea value={input} disabled={running} onChange={(e) => setInput(e.target.value)} rows={4} placeholder="Paste TikTok video links, one per line" className={field} />
+          {input && <p className="text-xs text-muted-foreground">{videoLinks(input).length.toLocaleString()} videos found in your paste</p>}
+        </>}
       <div className="flex flex-wrap items-center gap-3 text-sm">
         <label className="flex items-center gap-2">How many
           <select value={count} disabled={running} onChange={(e) => setCount(Number(e.target.value))} className="rounded-lg border bg-background px-2 py-1">

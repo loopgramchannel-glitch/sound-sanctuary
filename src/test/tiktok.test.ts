@@ -41,3 +41,16 @@ describe("tiktok account import", () => {
     expect(videoLinks("https://www.tiktok.com/@a/video/1 https://www.tiktok.com/@a/video/1?x=1 https://x.com/y")).toHaveLength(1);
   });
 });
+
+describe("bulk import capacity", () => {
+  it("reads all 10,000 pasted links", async () => {
+    const { videoLinks } = await import("@/lib/tiktok-account");
+    const text = Array.from({ length: 10000 }, (_, i) => `https://www.tiktok.com/@a/video/${7000000000000000000n + BigInt(i)}`).join("\n");
+    expect(videoLinks(text)).toHaveLength(10000);
+  });
+  it("bookmarklet is a valid javascript link", async () => {
+    const { COLLECT_BOOKMARKLET } = await import("@/lib/tiktok-account");
+    expect(COLLECT_BOOKMARKLET.startsWith("javascript:")).toBe(true);
+    expect(() => new Function(decodeURIComponent(COLLECT_BOOKMARKLET.slice(11)))).not.toThrow();
+  });
+});
