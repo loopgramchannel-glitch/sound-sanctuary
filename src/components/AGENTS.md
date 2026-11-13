@@ -1,0 +1,1 @@
+- TikTok account imports (TikTokAccountImport.tsx) list pages via `studioTikTokAccountPage` and import each video through the same `studioImportTikTok` + `studioPostSave` as single links. Why: account imports stay byte-identical to single imports (clean, in R2).

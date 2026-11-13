@@ -16,7 +16,7 @@ async function readDurable(): Promise<PostT[] | null> {
   const { d1 } = await import("./backend.server");
   const { isPublicEligible } = await import("./owner-content");
   try {
-    const r = await d1<{ body: string; status: string }>("SELECT body, status FROM posts ORDER BY created_at DESC LIMIT 5000");
+    const r = await d1<{ body: string; status: string }>("SELECT body, status FROM posts ORDER BY created_at DESC LIMIT 10000");
     const out: PostT[] = [];
     for (const it of r.results) {
       const p = Post.safeParse(JSON.parse(it.body ?? "null"));
