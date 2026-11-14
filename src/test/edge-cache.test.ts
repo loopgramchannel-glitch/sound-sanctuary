@@ -26,3 +26,13 @@ describe("edge cache policy", () => {
     expect(cachePolicy(get("/assets/app.abc123.js"), new Response("x"))).toContain("immutable");
   });
 });
+
+import { describe as d2, it as i2, expect as e2 } from "vitest";
+import { cachePolicy as cp } from "../server";
+d2("shorts edge cache", () => {
+  i2("caches /shorts at the edge and serves stale for a day", () => {
+    const v = cp(new Request("https://x.com/shorts"), new Response("ok", { headers: { "content-type": "text/html" } }));
+    e2(v).toContain("s-maxage=60");
+    e2(v).toContain("stale-while-revalidate=86400");
+  });
+});
