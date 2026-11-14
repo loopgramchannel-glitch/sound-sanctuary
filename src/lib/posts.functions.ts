@@ -29,7 +29,16 @@ async function readDurable(): Promise<PostT[] | null> {
 
 // Single-flight: when the cache is cold, concurrent requests in this instance share one D1 read.
 let inflight: Promise<PostT[]> | null = null;
+// L1: per-isolate copy so a traffic spike reads RAM instead of calling Redis on every request.
+const L1_MS = 20_000;
+let l1: { v: PostT[]; exp: number } | null = null;
 export async function readPosts(): Promise<PostT[]> {
+  if (l1 && l1.exp > Date.now()) return l1.v;
+  const v = await readPostsUncached();
+  if (v.length) l1 = { v, exp: Date.now() + L1_MS };
+  return v;
+}
+async function readPostsUncached(): Promise<PostT[]> {
   const { redis } = await import("./backend.server");
   const raw = (await redis(["GET", "site:posts"]).catch(() => null)) as string | null;
   if (typeof raw === "string") { try { return Posts.parse(JSON.parse(raw)); } catch { /* fall through */ } }
@@ -49,6 +58,7 @@ async function writeCache(list: PostT[]) {
   // Write failed: drop the old copy so readers go straight to D1 instead of a stale list.
   if (ok !== "OK") await redis(["DEL", "site:posts"]).catch(() => null);
   pub = null;
+  l1 = null;
   one.clear();
 }
 
