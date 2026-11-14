@@ -35,7 +35,8 @@ function allow(key: string, max: number, windowMs = 60_000) {
 export async function recordView(id: string, viewer: string, ip: string): Promise<{ counted: boolean }> {
   if (!allow(`v:${ip}`, 120)) return { counted: false };
   const counted = buf.view(id, viewer, Date.now());
-  if (counted) void flushStats().catch(() => {});
+  // Await the D1 write: Cloudflare freezes the worker after the response, so fire-and-forget would lose it.
+  if (counted) await flushStats(true).catch(() => {});
   return { counted };
 }
 
@@ -43,8 +44,10 @@ export async function recordView(id: string, viewer: string, ip: string): Promis
 export async function setVote(id: string, viewer: string, ip: string, vote: Vote): Promise<{ vote: Vote; likes?: number } | null> {
   if (!allow(`l:${ip}`, 60)) return null;
   buf.vote(id, viewer, vote);
-  void flushStats().catch(() => {});
-  return { vote };
+  await flushStats(true).catch(() => {});
+  memo.delete(id);
+  const likes = (await readStats([id]))[id]?.likes;
+  return { vote, likes };
 }
 
 export async function getVote(id: string, viewer: string): Promise<Vote> {
