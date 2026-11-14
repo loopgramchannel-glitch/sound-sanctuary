@@ -1,10 +1,12 @@
 // Browser-safe rules for post views & likes (YouTube-style). Shared by server and UI.
 
-/** Seconds of real watching before a view counts (YouTube counts intent, not page loads). */
-export const VIEW_AFTER_SHORT_S = 3;
-export const VIEW_AFTER_VIDEO_S = 10;
-/** Same viewer re-watching inside this window counts once. */
-export const VIEW_DEDUPE_S = 30 * 60;
+/** TikTok-style: a view counts after 1 second of real playback. */
+export const VIEW_AFTER_SHORT_S = 1;
+export const VIEW_AFTER_VIDEO_S = 1;
+/** Shorts keep looping: every further this-many seconds of watching counts as a replay view. */
+export const VIEW_REPLAY_S = 15;
+/** Anti-spam only: the same viewer can't add views on one post faster than this. */
+export const VIEW_DEDUPE_S = 5;
 
 export type Vote = 0 | 1 | -1;
 export type PostStats = { views: number; likes: number };

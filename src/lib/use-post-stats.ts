@@ -1,8 +1,8 @@
 // Browser hooks: live counts, YouTube-style optimistic like toggle, and watch-time view counting.
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { countPostView, getMyVote, getPostStats, votePost } from "./post-stats.functions";
-import { nextVote, VIEW_AFTER_SHORT_S, VIEW_AFTER_VIDEO_S, voteDelta, type PostStats, type Vote } from "./post-stats";
+import { nextVote, VIEW_AFTER_SHORT_S, VIEW_AFTER_VIDEO_S, VIEW_REPLAY_S, voteDelta, type PostStats, type Vote } from "./post-stats";
 
 export function viewerId(): string {
   const k = "lg:viewer";
@@ -51,27 +51,24 @@ export function usePostEngagement(id: string, short: boolean, active = true) {
     return () => { off = true; };
   }, [id]);
 
-  // A view counts only after real watching time with the tab visible (YouTube counts intent, not loads).
-  const sent = useRef("");
+  // TikTok-style: a view after 1s of visible playback, then shorts count every loop-length of further watching.
   useEffect(() => {
     if (!active) return;
-    const need = (short ? VIEW_AFTER_SHORT_S : VIEW_AFTER_VIDEO_S) * 1000;
-    let watched = 0, last = Date.now();
+    let need = (short ? VIEW_AFTER_SHORT_S : VIEW_AFTER_VIDEO_S) * 1000;
+    let watched = 0, last = Date.now(), sentOnce = false;
     const t = setInterval(() => {
       const now = Date.now();
       if (document.visibilityState === "visible") watched += now - last;
       last = now;
-      if (watched >= need && sent.current !== id) {
-        sent.current = id; clearInterval(t);
-        // This device already counted a view of this post in the last 30 min: don't ask the server again.
-        const seenKey = `lg:seen:${id}`;
-        if (Number(localStorage.getItem(seenKey)) > now - 30 * 60_000) return;
-        localStorage.setItem(seenKey, String(now));
-        countPostView({ data: { id, viewer: viewerId() } }).then((r) => {
-          if (r.counted) { setViews((v) => (v ?? 0) + 1); qc.invalidateQueries({ queryKey: ["post-stats"] }); }
-        }).catch(() => {});
-      }
-    }, 500);
+      if (watched < need) return;
+      if (!short && sentOnce) { clearInterval(t); return; }
+      sentOnce = true; watched = 0; need = VIEW_REPLAY_S * 1000;
+      setViews((v) => (v ?? 0) + 1);
+      countPostView({ data: { id, viewer: viewerId() } }).then((r) => {
+        if (!r.counted) setViews((v) => Math.max(0, (v ?? 1) - 1));
+        else qc.invalidateQueries({ queryKey: ["post-stats"] });
+      }).catch(() => setViews((v) => Math.max(0, (v ?? 1) - 1)));
+    }, 250);
     return () => clearInterval(t);
   }, [id, short, qc, active]);
 
