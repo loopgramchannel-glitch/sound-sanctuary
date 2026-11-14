@@ -6,10 +6,10 @@ const get = (p: string, h: Record<string, string> = {}) => new Request(`http://x
 
 describe("edge cache policy", () => {
   it("caches the home feed at the edge for 30s", () => {
-    expect(cachePolicy(get("/"), html())).toContain("s-maxage=30");
+    expect(cachePolicy(get("/"), html())).toContain("s-maxage=60");
   });
   it("caches watch pages at the edge for 60s", () => {
-    expect(cachePolicy(get("/post/p-abc123"), html())).toContain("s-maxage=60");
+    expect(cachePolicy(get("/post/p-abc123"), html())).toContain("s-maxage=300");
   });
   it("never caches studio or login", () => {
     expect(cachePolicy(get("/studio"), html())).toBeNull();

@@ -46,9 +46,10 @@ function isH3SwallowedErrorBody(body: string): boolean {
 
 // Public pages that are identical for every visitor: shared edge cache absorbs traffic spikes.
 const EDGE_CACHE: [RegExp, string][] = [
-  [/^\/$/, "public, max-age=0, s-maxage=30, stale-while-revalidate=300, stale-if-error=86400"],
-  [/^\/(explore|search)$/, "public, max-age=0, s-maxage=60, stale-while-revalidate=300, stale-if-error=86400"],
-  [/^\/post\/[a-z0-9-]{3,64}$/, "public, max-age=0, s-maxage=60, stale-while-revalidate=600, stale-if-error=86400"],
+  [/^\/$/, "public, max-age=0, s-maxage=60, stale-while-revalidate=86400, stale-if-error=86400"],
+  [/^\/shorts$/, "public, max-age=0, s-maxage=60, stale-while-revalidate=86400, stale-if-error=86400"],
+  [/^\/(explore|search)$/, "public, max-age=0, s-maxage=120, stale-while-revalidate=86400, stale-if-error=86400"],
+  [/^\/post\/[a-z0-9-]{3,64}$/, "public, max-age=0, s-maxage=300, stale-while-revalidate=86400, stale-if-error=86400"],
 ];
 const IMMUTABLE = /^\/assets\/.+\.[a-f0-9]{6,}\.|^\/assets\//;
 
