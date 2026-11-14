@@ -46,7 +46,7 @@ export async function setVote(id: string, viewer: string, ip: string, vote: Vote
   buf.vote(id, viewer, vote);
   await flushStats(true).catch(() => {});
   memo.delete(id);
-  const likes = (await readStats([id]))[id]?.likes;
+  const likes = (await readStats([id]))[id]?.likes ?? 0;
   return { vote, likes };
 }
 
